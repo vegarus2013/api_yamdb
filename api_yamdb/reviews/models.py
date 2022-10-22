@@ -43,9 +43,8 @@ class Titles(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
     description = models.TextField(null=True)
-    genre = models.ForeignKey(
-        Genres, on_delete=models.CASCADE, related_name='title')
-    categor = models.ForeignKey(
+    genre = models.ManyToManyField(Genres, through='GenreTitle')
+    category = models.ForeignKey(
         Categories, on_delete=models.CASCADE, related_name='title')
 
     def __str__(self):
@@ -77,3 +76,11 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class GenreTitle(models.Model):
+    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.title} {self.genre}'
