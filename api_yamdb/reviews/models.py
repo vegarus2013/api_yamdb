@@ -2,14 +2,23 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+ROLE_CHOISE = (
+    ('user', 'Пользователь'),
+    ('moder', 'Модератор'),
+    ('admin', 'Администратор'),
+)
+
 
 class User(AbstractUser):
     bio = models.TextField(
         'Биография',
         blank=True,
     )
-    role = models.TextField(
-        'Роль',
+    role = models.CharField(
+        verbose_name='Роль',
+        max_length=255,
+        choices=ROLE_CHOISE,
+        default='user',
         blank=True,
     )
 
