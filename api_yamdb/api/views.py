@@ -1,64 +1,69 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
+
 from reviews.models import User
 
-from .serializers import SignupSerializer, TokenSerializer, UserSerializer
+from .permissions import IsAdmin
+from .serializers import SignupSerializer, UserAccessSerializer, UserSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = [IsAdmin]
+    lookup_field = 'username'
+
+    @action(methods=['patch', 'get'], detail=False,
+            permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = UserSerializer(self.request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UserSerializer(self.request.user,
+                                    data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=request.user.role, partial=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
     serializer = SignupSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
-        send_confirmation_code(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data['email']
+    username = serializer.validated_data['username']
+    is_email = User.objects.filter(email=email).exists()
+    is_username = User.objects.filter(username=username).exists()
+    if is_email or is_username:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    user, code_created = User.objects.get_or_create(
+        email=email, username=username)
+    confirmation_code = default_token_generator.make_token(user)
+    user.confirmation_code = confirmation_code
+    user.save()
+    send_mail(
+        'Код подтвержения для завершения регистрации',
+        f'Ваш код для получения JWT токена {user.confirmation_code}',
+        'code@yamdb.ru',
+        [email],
+        fail_silently=True,
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def token(request):
-    serializer = TokenSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    username = serializer.data['username']
+    serializer = UserAccessSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
     user = get_object_or_404(User, username=username)
-    confirmation_code = serializer.data['confirmation_code']
-    if not default_token_generator.check_token(user, confirmation_code):
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    token = RefreshToken.for_user(user)
-    return Response(
-        {'token': str(token.access_token)}, status=status.HTTP_200_OK
-    )
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def email(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.data['username']
-        email = serializer.data['email']
-        user = get_object_or_404(User, username=username, email=email)
-        send_confirmation_code(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def send_confirmation_code(user):
-    confirmation_code = default_token_generator.make_token(user)
-    subject = 'Код подверждения Yamdb'
-    message = f'{confirmation_code} - ваш код для авторизации на YaMDb'
-    user_email = [user.email]
-    return send_mail(subject, message, user_email)
+    token = AccessToken.for_user(user)
+    return Response({'token': str(token)}, status=status.HTTP_200_OK)
