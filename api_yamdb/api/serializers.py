@@ -1,8 +1,9 @@
+import datetime as dt
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from reviews.models import User
+from reviews.models import User, Categories, Genres, Titles
 
 
 class SignupSerializer(serializers.Serializer):
@@ -35,3 +36,39 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['first_name', 'last_name', 'username',
                   'bio', 'email', 'role']
+
+
+class CategorySerializers(serializers.ModelSerializer):
+
+    class Meta:
+        model = Categories
+        fields = ['name', 'slug']
+
+
+class GenreSerializers(serializers.ModelSerializer):
+
+    class Meta:
+        model = Genres
+        fields = ['name', 'slug']
+
+
+class TitleSerializers(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(queryset=Categories.objects.all(),
+                                            slug_field='slug',)
+    genre = serializers.SlugRelatedField(queryset=Genres.objects.all(),
+                                         slug_field='slug',
+                                         many=True)
+
+    class Meta:
+        model = Titles
+        # TODO Добавить поле рейтинг, которое будет высчитываять
+        # как среднее арифмитическое из всех обзоров на данное произведение
+        fields = ['category', 'genre', 'name', 'year', 'description']
+
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if value > year:
+            raise serializers.ValidationError(
+                'Год выпуска не может быть в будущем'
+            )
+        return value
