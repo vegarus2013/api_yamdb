@@ -103,6 +103,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_PAGINATION_CLASS': None,
+    'PAGE_SIZE': 10,
 }
 
 SIMPLE_JWT = {
@@ -132,10 +134,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
-
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': None,
-    'PAGE_SIZE': 10,
-}
 
 SILENCED_SYSTEM_CHECKS = ['rest_framework.W001']
