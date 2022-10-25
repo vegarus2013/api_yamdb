@@ -1,18 +1,21 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Comment, Reviews, Titles, User
 
-from .permissions import IsAdmin, IsAdminModeratorAuthorOrReadOnly
-from .serializers import (CommentSerializer, ReviewsSerializer,
-                          SignupSerializer, UserAccessSerializer,
-                          UserSerializer)
+from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
+
+from .permissions import (IsAdmin, IsAdminModeratorAuthorOrReadOnly,
+                          IsAdminUserOrReadOnly)
+from .serializers import (CategorySerializers, CommentSerializer,
+                          GenreSerializers, ReviewsSerializer,
+                          SignupSerializer, TitleSerializers,
+                          UserAccessSerializer, UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -69,6 +72,33 @@ def token(request):
     user = get_object_or_404(User, username=username)
     token = AccessToken.for_user(user)
     return Response({'token': str(token)}, status=status.HTTP_200_OK)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Categories.objects.all()
+    serializer_class = CategorySerializers
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    permission_classes = [IsAdminUserOrReadOnly]
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genres.objects.all()
+    serializer_class = GenreSerializers
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    permission_classes = [IsAdminUserOrReadOnly]
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Titles.objects.all()
+    serializer_class = TitleSerializers
+    permission_classes = [IsAdminUserOrReadOnly]
+    pagination_class = PageNumberPagination
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
