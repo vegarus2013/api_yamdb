@@ -1,9 +1,11 @@
 import datetime as dt
+
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 
-from reviews.models import User, Categories, Genres, Titles
+from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 
 
 class SignupSerializer(serializers.Serializer):
@@ -72,3 +74,21 @@ class TitleSerializers(serializers.ModelSerializer):
                 'Год выпуска не может быть в будущем'
             )
         return value
+
+
+class ReviewsSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        read_only_fields = ('id', 'title', 'pub_date',)
+        model = Reviews
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date')
+        read_only_fields = ('id', 'reviews', 'pub_date',)
+        model = Comment
