@@ -1,13 +1,12 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, permissions, serializers, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-
 from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 
 from .permissions import (IsAdmin, IsAdminModeratorAuthorOrReadOnly,
@@ -114,7 +113,12 @@ class ReviewsViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Titles, id=title_id)
-        serializer.save(author=self.request.user, title=title)
+        author = self.request.user
+        if title.reviews.filter(author=author):
+            raise serializers.ValidationError(
+                'Можно добавить только один отзыв!'
+            )
+        serializer.save(author=author, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
