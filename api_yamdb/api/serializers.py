@@ -4,7 +4,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-
 from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
 
 
@@ -60,12 +59,11 @@ class TitleSerializers(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(queryset=Genres.objects.all(),
                                          slug_field='slug',
                                          many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Titles
-        # TODO Добавить поле рейтинг, которое будет высчитываять
-        # как среднее арифмитическое из всех обзоров на данное произведение
-        fields = ['category', 'genre', 'name', 'year', 'description']
+        fields = ['category', 'genre', 'name', 'year', 'description', 'rating']
 
     def validate_year(self, value):
         year = dt.date.today().year
@@ -74,6 +72,12 @@ class TitleSerializers(serializers.ModelSerializer):
                 'Год выпуска не может быть в будущем'
             )
         return value
+
+    def get_rating(self, obj):
+        rates = obj.reviews.values_list('score', flat=True)
+        if rates:
+            return int(round(sum(rates) / len(rates), 0))
+        return None
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
