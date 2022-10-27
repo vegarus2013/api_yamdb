@@ -135,5 +135,3 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
-
-SILENCED_SYSTEM_CHECKS = ['rest_framework.W001']
