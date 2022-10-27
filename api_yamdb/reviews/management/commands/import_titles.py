@@ -1,7 +1,7 @@
 import csv
 from django.core.management.base import BaseCommand
 from rest_framework.generics import get_object_or_404
-from reviews.models import Titles, Categories
+from reviews.models import Title, Categories
 
 
 class Command(BaseCommand):
@@ -19,7 +19,7 @@ class Command(BaseCommand):
                     pk=row['category']
                 )
 
-                models = Titles(name=name,
+                models = Title(name=name,
                                 year=year,
                                 category=category,
                                 )

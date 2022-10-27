@@ -1,7 +1,7 @@
 import csv
 from django.core.management.base import BaseCommand
 from rest_framework.generics import get_object_or_404
-from reviews.models import Comment, User, Reviews
+from reviews.models import Comment, User, Review
 
 
 class Command(BaseCommand):
@@ -21,12 +21,12 @@ class Command(BaseCommand):
                     pk=row['author']
                 )
                 review_id = get_object_or_404(
-                    Reviews,
+                    Review,
                     pk=row['review_id']
                 )
 
                 models = Comment(
-                    reviews=review_id,
+                    review=review_id,
                     text=text,
                     author=author,
                     pub_date=pub_date,

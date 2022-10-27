@@ -4,7 +4,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from reviews.models import Categories, Comment, Genres, Reviews, Titles, User
+from reviews.models import Categories, Comment, Genres, Review, Title, User
 
 
 class SignupSerializer(serializers.Serializer):
@@ -62,7 +62,7 @@ class TitleSerializers(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
 
     class Meta:
-        model = Titles
+        model = Title
         fields = ['id', 'category', 'genre', 'name', 'year',
                   'description', 'rating']
 
@@ -81,13 +81,13 @@ class TitleSerializers(serializers.ModelSerializer):
         return None
 
 
-class ReviewsSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         read_only_fields = ('id', 'title', 'pub_date',)
-        model = Reviews
+        model = Review
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -95,5 +95,5 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
-        read_only_fields = ('id', 'reviews', 'pub_date',)
+        read_only_fields = ('id', 'review', 'pub_date',)
         model = Comment
