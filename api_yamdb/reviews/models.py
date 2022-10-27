@@ -77,7 +77,7 @@ class Genres(models.Model):
         return self.name
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
     description = models.TextField(null=True)
@@ -89,26 +89,35 @@ class Titles(models.Model):
         return self.name
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     text = models.TextField()
     score = models.IntegerField(
         validators=[MaxValueValidator(10), MinValueValidator(1)]
     )
     title = models.ForeignKey(
-        Titles, on_delete=models.CASCADE, related_name='reviews')
+        Title, on_delete=models.CASCADE, related_name='reviews')
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
+    class Meta:
+        ordering = ['pub_date']
+        verbose_name = 'Обзор'
+        verbose_name_plural = 'Обзоры'
+        constraints = [
+            models.UniqueConstraint(fields=['author', 'title'],
+                                    name='unique_review')
+        ]
+
     def __str__(self):
-        return self.text
+        return self.text[:15]
 
 
 class Comment(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments')
-    reviews = models.ForeignKey(
-        Reviews, on_delete=models.CASCADE, related_name='comments')
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
@@ -117,7 +126,7 @@ class Comment(models.Model):
 
 
 class GenreTitle(models.Model):
-    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
     genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
 
     def __str__(self):
