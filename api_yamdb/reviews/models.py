@@ -1,6 +1,3 @@
-from contextlib import nullcontext
-from tabnanny import verbose
-from tkinter.tix import Tree
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -129,7 +126,7 @@ class Title(models.Model):
         null=True,
         related_name='title',
         verbose_name='Категория'
-        )
+    )
 
     class Meta:
         ordering = ['name']

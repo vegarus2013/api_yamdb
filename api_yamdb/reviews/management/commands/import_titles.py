@@ -19,9 +19,10 @@ class Command(BaseCommand):
                     pk=row['category']
                 )
 
-                models = Title(name=name,
-                                year=year,
-                                category=category,
-                                )
+                models = Title(
+                    name=name,
+                    year=year,
+                    category=category,
+                )
                 models.save()
         print("Импорт тайтлов завершен")
