@@ -4,7 +4,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from reviews.models import Categories, Comment, Genres, Review, Title, User
+from reviews.models import Category, Comment, Genres, Review, Title, User
 
 
 class SignupSerializer(serializers.Serializer):
@@ -42,29 +42,25 @@ class UserSerializer(serializers.ModelSerializer):
 class CategorySerializers(serializers.ModelSerializer):
 
     class Meta:
-        model = Categories
-        fields = ['name', 'slug']
+        model = Category
+        exclude = ('id',)
 
 
 class GenreSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Genres
-        fields = ['name', 'slug']
+        exclude = ('id',)
 
 
 class TitleSerializers(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(queryset=Categories.objects.all(),
-                                            slug_field='slug',)
-    genre = serializers.SlugRelatedField(queryset=Genres.objects.all(),
-                                         slug_field='slug',
-                                         many=True)
+    category = CategorySerializers(read_only=True)
+    genre = GenreSerializers(many=True, read_only=True)
     rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
-        fields = ['id', 'category', 'genre', 'name', 'year',
-                  'description', 'rating']
+        fields = '__all__'
 
     def validate_year(self, value):
         year = dt.date.today().year

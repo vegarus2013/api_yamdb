@@ -1,13 +1,19 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, serializers, status, viewsets
+from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Categories, Comment, Genres, Review, Title, User
+from reviews.models import Category, Comment, Genres, Review, Title, User
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import TitleFilter
+
+
+
+from .mixins import ListCreateDestroyViewSet
 
 from .permissions import (IsAdmin, IsAdminModeratorAuthorOrReadOnly,
                           IsAdminUserOrReadOnly)
@@ -73,23 +79,19 @@ def token(request):
     return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Categories.objects.all()
+class CategoryViewSet(ListCreateDestroyViewSet):
+    queryset = Category.objects.all()
     serializer_class = CategorySerializers
-    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = [IsAdminUserOrReadOnly]
-    pagination_class = PageNumberPagination
     lookup_field = 'slug'
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenreSerializers
-    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     permission_classes = [IsAdminUserOrReadOnly]
-    pagination_class = PageNumberPagination
     lookup_field = 'slug'
 
 
@@ -97,12 +99,26 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializers
     permission_classes = [IsAdminUserOrReadOnly]
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
+
+    def perform_create(self, serializer):
+        category = get_object_or_404(
+            Category, slug=self.request.data.get('category')
+        )
+        genre = Genres.objects.filter(
+            slug__in=self.request.data.getlist('genre')
+        )
+        serializer.save(category=category, genre=genre)
+
+    def perform_update(self, serializer):
+        self.perform_create(serializer)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
 
     def get_queryset(self):
@@ -123,7 +139,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
 
     def get_queryset(self):
