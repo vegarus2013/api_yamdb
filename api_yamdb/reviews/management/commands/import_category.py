@@ -1,6 +1,6 @@
 import csv
 from django.core.management.base import BaseCommand
-from reviews.models import Categories
+from reviews.models import Category
 
 
 class Command(BaseCommand):
@@ -14,6 +14,6 @@ class Command(BaseCommand):
                 name = row['name']
                 slug = row['slug']
 
-                models = Categories(name=name, slug=slug)
+                models = Category(name=name, slug=slug)
                 models.save()
         print("Импорт категорий завершен")
