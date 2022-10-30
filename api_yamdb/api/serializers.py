@@ -4,7 +4,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from reviews.models import Category, Comment, Genres, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class SignupSerializer(serializers.Serializer):
@@ -49,7 +49,7 @@ class CategorySerializers(serializers.ModelSerializer):
 class GenreSerializers(serializers.ModelSerializer):
 
     class Meta:
-        model = Genres
+        model = Genre
         exclude = ('id',)
 
 

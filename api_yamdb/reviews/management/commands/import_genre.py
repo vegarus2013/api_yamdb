@@ -1,6 +1,6 @@
 import csv
 from django.core.management.base import BaseCommand
-from reviews.models import Genres
+from reviews.models import Genre
 
 
 class Command(BaseCommand):
@@ -14,6 +14,6 @@ class Command(BaseCommand):
                 name = row['name']
                 slug = row['slug']
 
-                models = Genres(name=name, slug=slug)
+                models = Genre(name=name, slug=slug)
                 models.save()
         print("Импорт жанров завершен")

@@ -80,7 +80,7 @@ class Category(models.Model):
         return self.name
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     name = models.CharField(
         max_length=200,
         verbose_name='Название'
@@ -115,7 +115,7 @@ class Title(models.Model):
         verbose_name='Описание'
     )
     genre = models.ManyToManyField(
-        Genres,
+        Genre,
         blank=True,
         through='GenreTitle',
         verbose_name='Жанр'
@@ -211,7 +211,7 @@ class GenreTitle(models.Model):
         on_delete=models.CASCADE
     )
     genre = models.ForeignKey(
-        Genres,
+        Genre,
         verbose_name='Жанр',
         on_delete=models.CASCADE
     )

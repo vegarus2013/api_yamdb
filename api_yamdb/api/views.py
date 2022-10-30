@@ -8,8 +8,8 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-
-from reviews.models import Category, Comment, Genres, Review, Title, User
+from django.conf import settings
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 from .filters import TitleFilter
 from .mixins import ListCreateDestroyViewSet
@@ -59,7 +59,7 @@ def signup(request):
     send_mail(
         'Код подтвержения для завершения регистрации',
         f'Ваш код для получения JWT токена {user.confirmation_code}',
-        'code@yamdb.ru',
+        settings.CODE_EMAIL,
         [email],
         fail_silently=True,
     )
@@ -86,7 +86,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
-    queryset = Genres.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializers
     search_fields = ('name',)
     permission_classes = [IsAdminUserOrReadOnly]
@@ -105,7 +105,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         category = get_object_or_404(
             Category, slug=self.request.data.get('category')
         )
-        genre = Genres.objects.filter(
+        genre = Genre.objects.filter(
             slug__in=self.request.data.getlist('genre')
         )
         serializer.save(category=category, genre=genre)
