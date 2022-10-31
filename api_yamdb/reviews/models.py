@@ -2,11 +2,13 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-ROLE_CHOISE = (
+from .validators import validate_year
+
+ROLE_CHOISE = [
     ('user', 'Пользователь'),
     ('moderator', 'Модератор'),
     ('admin', 'Администратор'),
-)
+]
 
 
 class User(AbstractUser):
@@ -107,6 +109,7 @@ class Title(models.Model):
     year = models.IntegerField(
         null=True,
         blank=True,
+        validators=(validate_year,),
         verbose_name='Год'
     )
     description = models.TextField(
@@ -124,7 +127,7 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='title',
+        related_name='titles',
         verbose_name='Категория'
     )
 
@@ -143,8 +146,8 @@ class Review(models.Model):
         verbose_name='Текст отзыва',
     )
     score = models.IntegerField(
-        validators=[MaxValueValidator(10),
-                    MinValueValidator(1)],
+        validators=[MinValueValidator(1, 'Значение должно быть от 1 до 10'),
+                    MaxValueValidator(10, 'Значение должно быть от 1 до 10')],
         verbose_name='Рейтинг'
     )
     title = models.ForeignKey(

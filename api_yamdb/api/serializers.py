@@ -1,9 +1,9 @@
-import datetime as dt
-
 from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -62,19 +62,11 @@ class TitleSerializers(serializers.ModelSerializer):
         model = Title
         fields = '__all__'
 
-    def validate_year(self, value):
-        year = dt.date.today().year
-        if value > year:
-            raise serializers.ValidationError(
-                'Год выпуска не может быть в будущем'
-            )
-        return value
-
     def get_rating(self, obj):
-        rates = obj.reviews.values_list('score', flat=True)
-        if rates:
-            return int(round(sum(rates) / len(rates), 0))
-        return None
+        rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
+        if not rating:
+            return rating
+        return round(rating, 1)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
