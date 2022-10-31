@@ -12,7 +12,7 @@ class SignupSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
 
     def validate(self, data):
-        if data['username'] == 'me':
+        if data['username'].lower() == 'me':
             raise serializers.ValidationError(
                 {'Выберите другой username'})
         return data
