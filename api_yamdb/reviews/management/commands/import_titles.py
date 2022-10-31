@@ -1,7 +1,7 @@
 import csv
 from django.core.management.base import BaseCommand
 from rest_framework.generics import get_object_or_404
-from reviews.models import Title, Categories
+from reviews.models import Title, Category
 
 
 class Command(BaseCommand):
@@ -15,13 +15,14 @@ class Command(BaseCommand):
                 name = row['name']
                 year = row['year']
                 category = get_object_or_404(
-                    Categories,
+                    Category,
                     pk=row['category']
                 )
 
-                models = Title(name=name,
-                                year=year,
-                                category=category,
-                                )
+                models = Title(
+                    name=name,
+                    year=year,
+                    category=category,
+                )
                 models.save()
         print("Импорт тайтлов завершен")
