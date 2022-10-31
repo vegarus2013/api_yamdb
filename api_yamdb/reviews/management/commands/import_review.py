@@ -1,7 +1,8 @@
 import csv
+
 from django.core.management.base import BaseCommand
 from rest_framework.generics import get_object_or_404
-from reviews.models import Review, User, Title
+from reviews.models import Review, Title, User
 
 
 class Command(BaseCommand):
