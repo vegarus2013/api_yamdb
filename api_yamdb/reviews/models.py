@@ -4,14 +4,26 @@ from django.db import models
 
 from .validators import validate_year
 
-ROLE_CHOISE = [
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор'),
-]
-
 
 class User(AbstractUser):
+
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+
+    ROLE_CHOICE = [
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор')
+    ]
+
+    role = models.CharField(
+        max_length=255,
+        choices=ROLE_CHOICE,
+        default=USER,
+        verbose_name='Роль'
+    )
+
     email = models.EmailField(
         unique=True,
         verbose_name='Адрес электронной почты'
@@ -20,13 +32,6 @@ class User(AbstractUser):
     bio = models.TextField(
         blank=True,
         verbose_name='Биография'
-    )
-    role = models.CharField(
-        max_length=255,
-        choices=ROLE_CHOISE,
-        default='user',
-        blank=True,
-        verbose_name='Роль'
     )
 
     confirmation_code = models.CharField(
@@ -120,7 +125,7 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         blank=True,
-        through='GenreTitle',
+        related_name='titles',
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
@@ -146,6 +151,7 @@ class Review(models.Model):
         verbose_name='Текст отзыва',
     )
     score = models.IntegerField(
+        null=True,
         validators=[MinValueValidator(1, 'Значение должно быть от 1 до 10'),
                     MaxValueValidator(10, 'Значение должно быть от 1 до 10')],
         verbose_name='Рейтинг'
@@ -205,24 +211,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text[:15]
-
-
-class GenreTitle(models.Model):
-    title = models.ForeignKey(
-        Title,
-        verbose_name='Произведение',
-        on_delete=models.CASCADE
-    )
-    genre = models.ForeignKey(
-        Genre,
-        verbose_name='Жанр',
-        on_delete=models.CASCADE
-    )
-
-    class Meta:
-        verbose_name = 'Произведение и жанр'
-        verbose_name_plural = 'Произведения и жанры'
-        ordering = ['title']
-
-    def __str__(self):
-        return f'{self.title} {self.genre}'
