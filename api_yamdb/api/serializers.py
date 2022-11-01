@@ -55,17 +55,11 @@ class GenreSerializers(serializers.ModelSerializer):
 class TitleSerializers(serializers.ModelSerializer):
     category = CategorySerializers(read_only=True)
     genre = GenreSerializers(many=True, read_only=True)
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = '__all__'
-
-    def get_rating(self, obj):
-        rates = obj.reviews.values_list('score', flat=True)
-        if rates:
-            return int(round(sum(rates) / len(rates), 0))
-        return None
 
 
 class ReviewSerializer(serializers.ModelSerializer):
