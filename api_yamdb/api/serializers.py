@@ -1,5 +1,4 @@
 from django.contrib.auth.tokens import default_token_generator
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -63,10 +62,10 @@ class TitleSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_rating(self, obj):
-        rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
-        if not rating:
-            return rating
-        return round(rating, 1)
+        rates = obj.reviews.values_list('score', flat=True)
+        if rates:
+            return int(round(sum(rates) / len(rates), 0))
+        return None
 
 
 class ReviewSerializer(serializers.ModelSerializer):
