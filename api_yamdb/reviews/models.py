@@ -5,11 +5,12 @@ from django.db import models
 from .validators import validate_year
 
 
-class User(AbstractUser):
+USER = 'user'
+MODERATOR = 'moderator'
+ADMIN = 'admin'
 
-    USER = 'user'
-    MODERATOR = 'moderator'
-    ADMIN = 'admin'
+
+class User(AbstractUser):
 
     ROLE_CHOICE = [
         (USER, 'Пользователь'),
@@ -45,13 +46,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return any(
-            (self.role == 'admin', self.is_superuser, self.is_staff)
-        )
+        return self.role == ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == MODERATOR
 
     class Meta(AbstractUser.Meta):
         ordering = ['username']
