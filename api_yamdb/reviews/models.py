@@ -46,7 +46,7 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return any(
-            [self.role == 'admin', self.is_superuser, self.is_staff]
+            (self.role == 'admin', self.is_superuser, self.is_staff)
         )
 
     @property
