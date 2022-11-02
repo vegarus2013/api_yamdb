@@ -70,7 +70,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         title_id = self.context['view'].kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
         if request.method == "POST":
-            if title.reviews.filter(author=request.user):
+            if title.reviews.filter(author=request.user).exists():
                 raise serializers.ValidationError(
                     'Можно добавить только один отзыв!')
         return data
